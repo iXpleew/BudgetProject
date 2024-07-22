@@ -14,7 +14,7 @@ import javafx.stage.Stage;
 import java.io.IOException;
 
 public class HelloApplication extends Application {
-
+    //attach files to this project
     static int incomeAmount = 0;
 
     private static Text titleText = new Text("Personal Budget Management App");{
