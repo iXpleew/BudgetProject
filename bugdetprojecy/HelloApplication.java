@@ -11,11 +11,12 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 
-import java.io.IOException;
+import java.io.*;
 
 public class HelloApplication extends Application {
-    //attach files to this project
-    static int incomeAmount = 0;
+
+    static int savedMoney = 0;
+    File file = new File("user_data.txt");
 
     private static Text titleText = new Text("Personal Budget Management App");{
         titleText.setLayoutY(40);
@@ -26,11 +27,11 @@ public class HelloApplication extends Application {
         enterIncome.setLayoutX(20);
         enterIncome.setLayoutY(100);
     }
-    public static Text moneyText = new Text("Your money: " + incomeAmount + " PLN");{
+    public static Text moneyText = new Text("Your money: " + savedMoney + " PLN");{
         moneyText.setLayoutX(600);
         moneyText.setLayoutY(100);
     }
-    private static TextField yourIncome = new TextField("1");{
+    private static TextField yourIncome = new TextField("0");{
         yourIncome.setLayoutX(20);
         yourIncome.setLayoutY(110);
     }
@@ -43,8 +44,8 @@ public class HelloApplication extends Application {
         applyIncome.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent actionEvent) {
-                incomeAmount = Integer.parseInt(yourIncome.getText());
-                moneyText.setText("Your money: " + yourIncome.getText() + " PLN");
+                savedMoney = Integer.parseInt(yourIncome.getText());
+                updateMoneyText();
 
             }
         });
@@ -57,18 +58,21 @@ public class HelloApplication extends Application {
         enterIncomeScene.setLayoutX(345);
         enterIncomeScene.setLayoutY(170);
     }
+
+
     @Override
     public void start(Stage primaryStage) throws IOException {
         AnchorPane layout = new AnchorPane();
-
         Scene mainScene = new Scene( layout, 800, 400);
         ExpenseSceneBuild expenseScene = new ExpenseSceneBuild(primaryStage, mainScene);
         IncomeSceneBuild incomeScene = new IncomeSceneBuild(primaryStage, mainScene);
 
-        //adding all the objects to the scene: titletext, incometext, enterText, yourincome, apply, enterExpe;
+        //connecting the database with the app
+        BufferedReader br = new BufferedReader(new FileReader(file));
+        savedMoney = Integer.parseInt(FileChecker(br, 0));
+        updateMoneyText();
+
         layout.getChildren().addAll(titleText, moneyText, enterIncome, yourIncome, applyIncome, enterExpensesScene, enterIncomeScene);
-
-
         enterExpensesScene.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent actionEvent) {
@@ -84,5 +88,21 @@ public class HelloApplication extends Application {
         primaryStage.setTitle("Personal Budget Management");
         primaryStage.setScene(mainScene);
         primaryStage.show();
+    }
+
+    private String FileChecker(BufferedReader bufferedReader, int deliberateLine) throws IOException {
+        int index = 0;
+        String line;
+        while((line = bufferedReader.readLine()) != null){
+            if (index == deliberateLine){
+                return line;
+            }
+            index++;
+        }
+        return null;
+    }
+
+    private void updateMoneyText(){
+        moneyText.setText("Your money: " + savedMoney + " PLN");
     }
 }
