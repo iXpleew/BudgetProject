@@ -16,7 +16,6 @@ import java.io.*;
 public class HelloApplication extends Application {
 
     static int savedMoney = 0;
-    File file = new File("user_data.txt");
 
     private static Text titleText = new Text("Personal Budget Management App");{
         titleText.setLayoutY(40);
@@ -45,6 +44,7 @@ public class HelloApplication extends Application {
             @Override
             public void handle(ActionEvent actionEvent) {
                 savedMoney = Integer.parseInt(yourIncome.getText());
+                FileManagment.FileChanger(0, "Saved money: " + savedMoney);
                 updateMoneyText();
 
             }
@@ -67,39 +67,32 @@ public class HelloApplication extends Application {
         ExpenseSceneBuild expenseScene = new ExpenseSceneBuild(primaryStage, mainScene);
         IncomeSceneBuild incomeScene = new IncomeSceneBuild(primaryStage, mainScene);
 
-        //connecting the database with the app
-        BufferedReader br = new BufferedReader(new FileReader(file));
-        savedMoney = Integer.parseInt(FileChecker(br, 0));
+        savedMoney = Integer.parseInt(FileManagment.FileChecker(0));
         updateMoneyText();
 
         layout.getChildren().addAll(titleText, moneyText, enterIncome, yourIncome, applyIncome, enterExpensesScene, enterIncomeScene);
+
         enterExpensesScene.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent actionEvent) {
+                //ale tutaj juz nie potrzebuje zajmowac sie wyjatkiem a to jest to samo XD
                 primaryStage.setScene(expenseScene.buildExpenseScene());
             }
         });
         enterIncomeScene.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent actionEvent) {
-                primaryStage.setScene(incomeScene.buildIncomeScene());
+                //podkresla mi sie nagle z dupy Unhadled exception gdy wszystko wczesniej dzialalo
+                try {
+                    primaryStage.setScene(incomeScene.buildIncomeScene());
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
             }
         });
         primaryStage.setTitle("Personal Budget Management");
         primaryStage.setScene(mainScene);
         primaryStage.show();
-    }
-
-    private String FileChecker(BufferedReader bufferedReader, int deliberateLine) throws IOException {
-        int index = 0;
-        String line;
-        while((line = bufferedReader.readLine()) != null){
-            if (index == deliberateLine){
-                return line;
-            }
-            index++;
-        }
-        return null;
     }
 
     private void updateMoneyText(){
