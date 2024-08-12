@@ -16,12 +16,15 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 
+import java.io.*;
+import java.time.LocalDate;
 import java.util.LinkedList;
 import java.util.Queue;
 
 public class ExpenseSceneBuild {
     private Stage primaryStage;
     private Scene mainScene;
+
     Queue<Expense> listOfExpenses = new LinkedList<>();
     ObservableList<Expense> expenses = FXCollections.observableArrayList(listOfExpenses);
 
@@ -33,12 +36,14 @@ public class ExpenseSceneBuild {
     public Scene buildExpenseScene() {
         AnchorPane expensesPane = new AnchorPane();
         Scene expensesScene = new Scene(expensesPane, 800, 400);
+        File file = new File("expenses_data.txt");
+
         Text titleText = new Text("Expenses Scene"); {
             titleText.setLayoutY(40);
             titleText.setWrappingWidth(800);
             titleText.setTextAlignment(TextAlignment.CENTER);
         }
-        Text incomeText = new Text("Actual money: " + HelloApplication.incomeAmount + " PLN");{
+        Text incomeText = new Text("Actual money: " + HelloApplication.savedMoney + " PLN");{
             incomeText.setLayoutY(100);
             incomeText.setLayoutX(20);
         }
@@ -56,20 +61,42 @@ public class ExpenseSceneBuild {
             enterExpenseAmount.setLayoutY(140);
         }
 
-        //tabele ta trzeba ogarnac
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(file));
+            String line;
+            while((line = br.readLine()) != null){
+                int colonIndex = line.indexOf(":");
+                int semiColonIndex = line.indexOf(";");
+
+                String expenseName = line.substring(0, colonIndex);
+                int expenseAmount = Integer.parseInt(line.substring(colonIndex + 1, semiColonIndex));
+                LocalDate expenseDate = LocalDate.parse(line.substring(semiColonIndex + 1));
+
+                listOfExpenses.add(new Expense(expenseName, expenseAmount, expenseDate));
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
         TableView<Expense> expenseTable = new TableView<>();{
             expenseTable.setLayoutX(250);
             expenseTable.setLayoutY(90);
             expenseTable.setMaxSize(300,200);
             expenseTable.setMinSize(300,200);
 
-            TableColumn<Expense, String> nameOfExpense = new TableColumn<>("Expense name");
+            TableColumn<Expense, String> nameOfExpense = new TableColumn<>("Name");
             nameOfExpense.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getNameOfExpense()));
+            nameOfExpense.setPrefWidth(130);
 
-            TableColumn<Expense, Integer> amountOfExpense = new TableColumn<>("Expense amount");
+            TableColumn<Expense, Integer> amountOfExpense = new TableColumn<>("Amount");
             amountOfExpense.setCellValueFactory(cellData -> new ReadOnlyObjectWrapper<>(cellData.getValue().getAmountOfExpense()));
+            amountOfExpense.setPrefWidth(70);
 
-            expenseTable.getColumns().addAll(nameOfExpense, amountOfExpense);
+            TableColumn<Expense, LocalDate> dateOfExpense = new TableColumn<>("Date");
+            dateOfExpense.setCellValueFactory(cellData -> new ReadOnlyObjectWrapper<>(cellData.getValue().getDateOfExpense()));
+            dateOfExpense.setPrefWidth(110);
+
+            expenseTable.getColumns().addAll(nameOfExpense, amountOfExpense, dateOfExpense);
             expenses = FXCollections.observableArrayList(listOfExpenses);
             expenseTable.setItems(expenses);
 
@@ -84,17 +111,25 @@ public class ExpenseSceneBuild {
                 public void handle(ActionEvent actionEvent) {
                     String name = enterExpenseName.getText();
                     int amount = Integer.parseInt(enterExpenseAmount.getText());
-                    Expense newExpense = new Expense(name, amount);
+                    LocalDate date = LocalDate.now();
+
+                    Expense newExpense = new Expense(name, amount, date);
                     listOfExpenses.add(newExpense);
+
+                    try (BufferedWriter bw = new BufferedWriter(new FileWriter(file, true))){
+                        bw.write(name + ':' + amount + ';' + date);
+                        bw.newLine();
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
 
                     expenses = FXCollections.observableArrayList(listOfExpenses);
                     expenseTable.setItems(expenses);
 
-                    System.out.println("Name: " + name);
-                    System.out.println("Amount: " + amount + " PLN");
-                    HelloApplication.incomeAmount -= amount;
-                    incomeText.setText("Your money: " + HelloApplication.incomeAmount + " PLN");
-                    HelloApplication.moneyText.setText("Your money: " + HelloApplication.incomeAmount + " PLN");
+                    HelloApplication.savedMoney -= amount;
+                    FileManagment.FileChanger(0,"Saved money: " + HelloApplication.savedMoney);
+                    incomeText.setText("Your money: " + HelloApplication.savedMoney + " PLN");
+                    HelloApplication.moneyText.setText("Your money: " + HelloApplication.savedMoney + " PLN");
 
                 }
             });
@@ -116,4 +151,5 @@ public class ExpenseSceneBuild {
 
         return expensesScene;
     }
+
 }
