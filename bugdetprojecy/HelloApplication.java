@@ -11,7 +11,7 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 
-import java.io.*;
+import java.io.IOException;
 
 public class HelloApplication extends Application {
 
@@ -75,14 +75,12 @@ public class HelloApplication extends Application {
         enterExpensesScene.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent actionEvent) {
-                //ale tutaj juz nie potrzebuje zajmowac sie wyjatkiem a to jest to samo XD
                 primaryStage.setScene(expenseScene.buildExpenseScene());
             }
         });
         enterIncomeScene.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent actionEvent) {
-                //podkresla mi sie nagle z dupy Unhadled exception gdy wszystko wczesniej dzialalo
                 try {
                     primaryStage.setScene(incomeScene.buildIncomeScene());
                 } catch (IOException e) {
