@@ -11,6 +11,7 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 
+import java.io.File;
 import java.io.IOException;
 
 public class HelloApplication extends Application {
@@ -59,6 +60,26 @@ public class HelloApplication extends Application {
         enterIncomeScene.setLayoutY(170);
     }
 
+    private static Button deleteAllData = new Button("Delete all data and Exit");{
+        deleteAllData.setLayoutX(50);
+        deleteAllData.setLayoutY(350);
+        deleteAllData.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent actionEvent) {
+                savedMoney = 0;
+                FileManagment.FileChanger(0, "Saved money: 0");
+                FileManagment.FileChanger(1, "Net income: 0");
+                File file = new File("expenses_data.txt");
+                if(file.exists()) file.delete();
+                try {
+                    file.createNewFile();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+                System.exit(0);
+            }
+        });
+    }
 
     @Override
     public void start(Stage primaryStage) throws IOException {
@@ -70,7 +91,7 @@ public class HelloApplication extends Application {
         savedMoney = Integer.parseInt(FileManagment.FileChecker(0));
         updateMoneyText();
 
-        layout.getChildren().addAll(titleText, moneyText, enterIncome, yourIncome, applyIncome, enterExpensesScene, enterIncomeScene);
+        layout.getChildren().addAll(titleText, moneyText, enterIncome, yourIncome, applyIncome, enterExpensesScene, enterIncomeScene, deleteAllData);
 
         enterExpensesScene.setOnAction(new EventHandler<ActionEvent>() {
             @Override
